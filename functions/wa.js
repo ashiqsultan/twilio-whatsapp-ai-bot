@@ -22,9 +22,13 @@ exports.handler = async (context, event, callback) => {
       Runtime.getFunctions()['business/addBotMsgToSummary'].path;
     const addBotMsgToSummary = require(addBotMsgToSummaryPath);
 
+    const medicAgentPath = Runtime.getFunctions()['ai/medicAgent'].path;
+    const medicAgent = require(medicAgentPath);
+
     // Import Ends
 
     const WaId = event.WaId || '';
+    const lastMsg = event.Body || '';
     if (!WaId) {
       throw new Error('Missing WaId');
     }
@@ -36,7 +40,7 @@ exports.handler = async (context, event, callback) => {
     const patientDetails = patient.details || {};
 
     // Summarize Conversation
-    const chatSummary = await getSummary(WaId, event.Body);
+    const chatSummary = await getSummary(WaId, lastMsg);
     // Confirm Basic details
     console.log({ chatSummary });
     const checkPatientDetails = await patientDetailsCheck(
@@ -51,9 +55,17 @@ exports.handler = async (context, event, callback) => {
       return callback(null, newMsg01);
     }
     if (checkPatientDetails.isPatientDetailsComplete) {
+      const medicAgentRes = await medicAgent(
+        chatSummary,
+        patientDetails
+      );
+      console.log({ medicAgentRes });
+      const botReply = medicAgentRes.message || '';
+      if (!medicAgentRes.isMoreInfoRequired) {
+        // TODO:Call Doctor service
+        console.log('$$ Calling Doctor service $$');
+      }
       const newMsg02 = new MessagingResponse();
-      const botReply =
-        'Thank you for your response. Please explain your problem and symptoms';
       newMsg02.message(botReply);
       await addBotMsgToSummary(WaId, chatSummary, botReply);
       return callback(null, newMsg02);
