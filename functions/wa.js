@@ -6,7 +6,6 @@ exports.handler = async (context, event, callback) => {
     console.log('event');
     console.log(event);
     // Import
-
     const getOrCreatePatientPath =
       Runtime.getFunctions()['business/getOrCreatePatient'].path;
     const getOrCreatePatient = require(getOrCreatePatientPath);
@@ -25,6 +24,9 @@ exports.handler = async (context, event, callback) => {
     const medicAgentPath = Runtime.getFunctions()['ai/medicAgent'].path;
     const medicAgent = require(medicAgentPath);
 
+    const getDoctorPhoneNoPath =
+      Runtime.getFunctions()['business/getDoctorPhoneNo'].path;
+    const getDoctorPhoneNo = require(getDoctorPhoneNoPath);
     // Import Ends
 
     const WaId = event.WaId || '';
@@ -32,6 +34,11 @@ exports.handler = async (context, event, callback) => {
     if (!WaId) {
       throw new Error('Missing WaId');
     }
+
+    const accountSid = process.env.ACCOUNT_SID;
+    const authToken = process.env.AUTH_TOKEN;
+    const client = require('twilio')(accountSid, authToken);
+
     //  TODO: Check is message from doctor if yes then call doctor handler
     const patient = await getOrCreatePatient(WaId);
     if (!patient) {
@@ -55,15 +62,22 @@ exports.handler = async (context, event, callback) => {
       return callback(null, newMsg01);
     }
     if (checkPatientDetails.isPatientDetailsComplete) {
-      const medicAgentRes = await medicAgent(
-        chatSummary,
-        patientDetails
-      );
+      const medicAgentRes = await medicAgent(chatSummary, patientDetails);
       console.log({ medicAgentRes });
       const botReply = medicAgentRes.message || '';
       if (!medicAgentRes.isMoreInfoRequired) {
-        // TODO:Call Doctor service
-        console.log('$$ Calling Doctor service $$');
+        console.log('Updating Doctor');
+        const docPhoneNo = await getDoctorPhoneNo(chatSummary, patientDetails);
+        const from = event.To;
+        const to = `whatsapp:+${docPhoneNo}`;
+        console.log({ from, to });
+        const message = await client.messages.create({
+          from: from,
+          to: to,
+          body: String(chatSummary),
+        });
+        console.log(message.sid);
+        console.log('Doctor updated');
       }
       const newMsg02 = new MessagingResponse();
       newMsg02.message(botReply);
