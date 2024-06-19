@@ -1,6 +1,8 @@
-const openai = require('../utils/openai');
 const patientDetailsAgent = async (chatSummary, patientDetails) => {
   try {
+    const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
+    const openaiHelper = require(openaiHelperPath);
+
     const context = `You are a helpful assistant. You will be provided with two inputs chatSummary and patientDetails.
     INSTRUCTIONS
     You need to check whether the patientDetails object contains the following properties with proper values
@@ -48,7 +50,7 @@ const patientDetailsAgent = async (chatSummary, patientDetails) => {
     chatSummary: ${chatSummary},
     patientDetails: ${JSON.stringify(patientDetails)}`;
 
-    const openaiRes = await openai(context, message);
+    const openaiRes = await openaiHelper(context, message);
     if (openaiRes) {
       return openaiRes;
     }

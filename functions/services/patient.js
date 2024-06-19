@@ -1,8 +1,9 @@
-const dbClient = require('../utils/dbclient');
-
 const COLLECTION_NAME = 'patients';
 const getPatientbyPhoneNo = async (phone_no) => {
   try {
+    const dbClientPath = Runtime.getFunctions()['utils/dbclient'].path;
+    const dbClient = require(dbClientPath);
+
     const db = await dbClient(process.env.MONGODB_URI);
     const patient = await db
       .collection(COLLECTION_NAME)
@@ -15,6 +16,9 @@ const getPatientbyPhoneNo = async (phone_no) => {
 
 const createPatient = async (phone_no) => {
   try {
+    const dbClientPath = Runtime.getFunctions()['utils/dbclient'].path;
+    const dbClient = require(dbClientPath);
+
     const db = await dbClient(process.env.MONGODB_URI);
     const collection = db.collection(COLLECTION_NAME);
     const newDoc = await collection.insertOne({ phone_no: phone_no });
@@ -28,6 +32,9 @@ const createPatient = async (phone_no) => {
 // Using mongodb update the patient details field with the given object
 const updatePatientDetailsByPhoneNo = async (phone_no, patientDetails) => {
   try {
+    const dbClientPath = Runtime.getFunctions()['utils/dbclient'].path;
+    const dbClient = require(dbClientPath);
+
     const db = await dbClient(process.env.MONGODB_URI);
     const collection = db.collection(COLLECTION_NAME);
     const _updateOp = await collection.updateOne(

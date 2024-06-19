@@ -1,15 +1,29 @@
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
-const getOrCreatePatient = require('../Business/getOrCreatePatient');
-const { getSummary } = require('../Business/getSummary');
-const patientDetailsCheck = require('../Business/patientDetailsCheck');
-const addBotMsgToSummary = require('../Business/addBotMsgToSummary');
-const dbclient = require('../utils/dbclient');
 
 exports.handler = async (context, event, callback) => {
   try {
     console.log('You hit Whats App route');
     console.log('event');
     console.log(event);
+    // Import
+
+    const getOrCreatePatientPath =
+      Runtime.getFunctions()['business/getOrCreatePatient'].path;
+    const getOrCreatePatient = require(getOrCreatePatientPath);
+
+    const getSummaryPath = Runtime.getFunctions()['business/getSummary'].path;
+    const getSummary = require(getSummaryPath);
+
+    const patientDetailsCheckPath =
+      Runtime.getFunctions()['business/patientDetailsCheck'].path;
+    const patientDetailsCheck = require(patientDetailsCheckPath);
+
+    const addBotMsgToSummaryPath =
+      Runtime.getFunctions()['business/addBotMsgToSummary'].path;
+    const addBotMsgToSummary = require(addBotMsgToSummaryPath);
+
+    // Import Ends
+
     const WaId = event.WaId || '';
     if (!WaId) {
       throw new Error('Missing WaId');
@@ -20,6 +34,7 @@ exports.handler = async (context, event, callback) => {
       throw new Error('Patient not found');
     }
     const patientDetails = patient.details || {};
+
     // Summarize Conversation
     const chatSummary = await getSummary(WaId, event.Body);
     // Confirm Basic details
@@ -50,10 +65,10 @@ exports.handler = async (context, event, callback) => {
     newMsg03.message(JSON.stringify(patient));
     return callback(null, newMsg03);
   } catch (err) {
-    if (dbclient.close) {
-      console.log('Reached catch block');
-      await dbclient.close();
-    }
+    // if (dbclient.close) {
+    //   console.log('Reached catch block');
+    //   await dbclient.close();
+    // }
     console.error(err);
     const msgRes = new MessagingResponse();
     msgRes.message('Something went wrong, Please try again later');
