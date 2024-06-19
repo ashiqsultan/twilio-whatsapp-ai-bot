@@ -24,9 +24,12 @@ exports.handler = async (context, event, callback) => {
     const medicAgentPath = Runtime.getFunctions()['ai/medicAgent'].path;
     const medicAgent = require(medicAgentPath);
 
-    const getDoctorPhoneNoPath =
-      Runtime.getFunctions()['business/getDoctorPhoneNo'].path;
-    const getDoctorPhoneNo = require(getDoctorPhoneNoPath);
+    const isDocMsgPath = Runtime.getFunctions()['business/isDocMsg'].path;
+    const isDocMsg = require(isDocMsgPath);
+
+    const sendChatSummaryToDoctorPath =
+      Runtime.getFunctions()['business/sendChatSummaryToDoctor'].path;
+    const sendChatSummaryToDoctor = require(sendChatSummaryToDoctorPath);
     // Import Ends
 
     const WaId = event.WaId || '';
@@ -35,11 +38,12 @@ exports.handler = async (context, event, callback) => {
       throw new Error('Missing WaId');
     }
 
-    const accountSid = process.env.ACCOUNT_SID;
-    const authToken = process.env.AUTH_TOKEN;
-    const client = require('twilio')(accountSid, authToken);
+    // Check is message from doctor if yes then call doctor handler
+    const isMsgFromDoctor = await isDocMsg(WaId);
+    if (isMsgFromDoctor) {
+      return callback(null, 'Yes its a doctor message');
+    }
 
-    //  TODO: Check is message from doctor if yes then call doctor handler
     const patient = await getOrCreatePatient(WaId);
     if (!patient) {
       throw new Error('Patient not found');
@@ -66,18 +70,8 @@ exports.handler = async (context, event, callback) => {
       console.log({ medicAgentRes });
       const botReply = medicAgentRes.message || '';
       if (!medicAgentRes.isMoreInfoRequired) {
-        console.log('Updating Doctor');
-        const docPhoneNo = await getDoctorPhoneNo(chatSummary, patientDetails);
-        const from = event.To;
-        const to = `whatsapp:+${docPhoneNo}`;
-        console.log({ from, to });
-        const message = await client.messages.create({
-          from: from,
-          to: to,
-          body: String(chatSummary),
-        });
-        console.log(message.sid);
-        console.log('Doctor updated');
+        const twilioWANo = event.To;
+        await sendChatSummaryToDoctor(chatSummary, twilioWANo, patient);
       }
       const newMsg02 = new MessagingResponse();
       newMsg02.message(botReply);

@@ -1,4 +1,6 @@
+const nanoid = require('nanoid');
 const COLLECTION_NAME = 'patients';
+
 const getPatientbyPhoneNo = async (phone_no) => {
   try {
     const dbClientPath = Runtime.getFunctions()['utils/dbclient'].path;
@@ -21,7 +23,16 @@ const createPatient = async (phone_no) => {
 
     const db = await dbClient(process.env.MONGODB_URI);
     const collection = db.collection(COLLECTION_NAME);
-    const newDoc = await collection.insertOne({ phone_no: phone_no });
+
+    const generateId = nanoid.customAlphabet(
+      '1234567890abcdefghijklmnopqrstuvwxyz',
+      6
+    );
+    const easyId = await generateId();
+    const newDoc = await collection.insertOne({
+      phone_no: phone_no,
+      easyId: easyId,
+    });
     const result = await collection.findOne({ _id: newDoc.insertedId });
     return result;
   } catch (error) {
