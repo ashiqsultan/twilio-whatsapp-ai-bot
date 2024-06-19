@@ -6,7 +6,7 @@ const patientDetailsAgent = async (chatSummary, patientDetails) => {
     const context = `You are a helpful assistant. You will be provided with two inputs chatSummary and patientDetails.
     INSTRUCTIONS
     You need to check whether the patientDetails object contains the following properties with proper values
-    Must have properties in patientDetails are [name, age, gender, country].
+    Must have properties in patientDetails are [name, age, gender, email].
     The chatSummary may or may not contain these properties.
     Your role is to do Named Entity Recognition from the chatSummary and update the required properties in patientDetails object. The patient Name should be a proper name of a person and it cannot be "patient" or "patient name"
     Add the properties to patientDetails only if it exists in chatSummary else dont include the property
@@ -22,7 +22,7 @@ const patientDetailsAgent = async (chatSummary, patientDetails) => {
         name: "patient name" or null,
         age: "patient age or null",
         gender: "patient gender or null",
-        country: "patient country or null"
+        email: "patient email or null"
       },
       question: "question for missing properties",
       isPatientDetailsComplete: false
@@ -38,7 +38,7 @@ const patientDetailsAgent = async (chatSummary, patientDetails) => {
         name: "patient name",
         age: "patient age",
         gender: "patient gender",
-        country: "patient country"
+        email: "patient email"
       },
       question: null,
       isPatientDetailsComplete: true
