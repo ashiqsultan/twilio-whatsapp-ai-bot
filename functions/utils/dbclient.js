@@ -4,7 +4,6 @@ let db;
 const dbClient = async (uri) => {
   try {
     if (db) {
-      console.log('Already connected to db');
       return db;
     }
     console.log('Connecting to MongoDB...');

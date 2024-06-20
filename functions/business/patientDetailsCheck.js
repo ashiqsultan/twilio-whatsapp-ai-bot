@@ -14,8 +14,6 @@ const patientDetailsCheck = async (chatSummary, patientDetails, phone_no) => {
       chatSummary,
       patientDetails
     );
-    console.log('agentResponse', agentResponse);
-
     if (!isEqual(patientDetails, agentResponse.patientDetails)) {
       updatedPatientDetails = agentResponse.patientDetails;
       const updateOp = await patientService.updatePatientDetailsByPhoneNo(

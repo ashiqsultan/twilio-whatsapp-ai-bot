@@ -3,47 +3,22 @@ const patientDetailsAgent = async (chatSummary, patientDetails) => {
     const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
     const openaiHelper = require(openaiHelperPath);
 
-    const context = `You are a helpful assistant. You will be provided with two inputs chatSummary and patientDetails.
-    INSTRUCTIONS
-    You need to check whether the patientDetails object contains the following properties with proper values
-    Must have properties in patientDetails are [name, age, gender, email].
-    The chatSummary may or may not contain these properties.
-    Your role is to do Named Entity Recognition from the chatSummary and update the required properties in patientDetails object. The patient Name should be a proper name of a person and it cannot be "patient" or "patient name"
-    Add the properties to patientDetails only if it exists in chatSummary else dont include the property
-    After you identify the properties from chatSummary and update the patientDetails object. Check if the patientDetails object contains all the must have properties.
-    There are two possible outcomes for this agent.
-    Case01: patientDetails object still contains missing properties. The output json for this case should contain three properties 
-    1. patientDetails: the updated patientDetails object.
-    2. question: a string, A question to ask the patient to provide the required properties. The question should be in second person 
-    3. isPatientDetailsComplete: boolean true or false
-    OUTPUT JSON FORMAT for Case01
+    const context = `You will receive two user inputs
+    - 1. chatSummary: Summary of the chat so far between patient and bot
+    - 2. patientDetails: Available patient details in JSON format
+    SYSTEM INPUT: REQUIRED PROPERTIES = name, age, gender
+    Your objective is to identify the required properties in the chatSummary and patientDetails and return the updated patient details in JSON format in the output.
+    The final output should have 3 fields
+    - patientDetails: updated patient details.
+    - isPatientDetailsComplete: boolean true or false. If the updated patient details contains all the required properties then this is true else false
+    - question: if the updated patient details is not complete then ask a friendly question to the user to provide the missing properties. if the updated patient details is complete then question value should be null
+
+    Output JSON format:
     {
-      patientDetails: {
-        name: "patient name" or null,
-        age: "patient age or null",
-        gender: "patient gender or null",
-        email: "patient email or null"
-      },
-      question: "question for missing properties",
-      isPatientDetailsComplete: false
-    }
-    Case02: patientDetails object contains all the must have properties.
-    In this case your output json should contain three properties
-    1. patientDetails 
-    2. question will be null
-    3. isPatientDetailsComplete: true
-    OUTPUT JSON FORMAT for Case02
-    {
-      patientDetails: {
-        name: "patient name",
-        age: "patient age",
-        gender: "patient gender",
-        email: "patient email"
-      },
-      question: null,
-      isPatientDetailsComplete: true
-    }
-    `;
+    patientDetails: { name: "patient name", age: "patient age", gender: "patient gender" },
+    isPatientDetailsComplete: boolean based on if the updated patient details contains all the required properties
+    question: question about missing properties or null,
+    }`;
 
     const message = `
     INPUTS

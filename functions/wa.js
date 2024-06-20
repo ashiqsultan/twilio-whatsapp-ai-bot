@@ -86,7 +86,6 @@ exports.handler = async (context, event, callback) => {
     // Summarize Conversation
     const chatSummary = await getSummary(WaId, lastMsg);
     // Confirm Basic details
-    console.log({ chatSummary });
     const checkPatientDetails = await patientDetailsCheck(
       chatSummary,
       patientDetails,
@@ -104,20 +103,23 @@ exports.handler = async (context, event, callback) => {
       return callback(null, newMsg01);
     }
     if (checkPatientDetails.isPatientDetailsComplete) {
-      const medicAgentRes = await medicAgent(chatSummary, patientDetails);
+      const medicAgentRes = await medicAgent(chatSummary);
       console.log({ medicAgentRes });
-      const botReply = medicAgentRes.message || '';
-      if (!medicAgentRes.isMoreInfoRequired) {
+      const botReply = medicAgentRes.botReply || '';
+      await addBotMsgToSummary(WaId, chatSummary, botReply);
+      if (medicAgentRes.isSubmit) {
         await sendChatSummaryToDoctor(chatSummary, twilioWANo, patient);
       }
-      await addBotMsgToSummary(WaId, chatSummary, botReply);
       if (patient.prefLang !== 'english') {
         const translatedMsg = await translateAgent(botReply, patient.prefLang);
-        botReply = translatedMsg;
+        const msgToSend = translatedMsg;
+        const newMsg02 = new MessagingResponse();
+        newMsg02.message(msgToSend);
+        return callback(null, newMsg02);
       }
-      const newMsg02 = new MessagingResponse();
-      newMsg02.message(botReply);
-      return callback(null, newMsg02);
+      const newMsg03 = new MessagingResponse();
+      newMsg03.message(botReply);
+      return callback(null, newMsg03);
     }
 
     const fallbackMsg = new MessagingResponse();
