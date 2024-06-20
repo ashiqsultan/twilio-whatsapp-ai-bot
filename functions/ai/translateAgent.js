@@ -1,4 +1,4 @@
-const englishTranslateAgent = async (text, languageToTranslate) => {
+const translateAgent = async (text, languageToTranslate) => {
   try {
     const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
     const openaiHelper = require(openaiHelperPath);
@@ -11,8 +11,8 @@ const englishTranslateAgent = async (text, languageToTranslate) => {
       }
       `;
     const openaiRes = await openaiHelper(context, text);
-    if (openaiRes) {
-      return openaiRes;
+    if (openaiRes && openaiRes.message) {
+      return openaiRes.message;
     }
     return '';
   } catch (error) {
@@ -20,4 +20,4 @@ const englishTranslateAgent = async (text, languageToTranslate) => {
   }
 };
 
-module.exports = englishTranslateAgent;
+module.exports = translateAgent;

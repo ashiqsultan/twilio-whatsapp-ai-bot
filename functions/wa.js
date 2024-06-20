@@ -39,6 +39,9 @@ exports.handler = async (context, event, callback) => {
       Runtime.getFunctions()['ai/englishTranslateAgent'].path;
     const englishTranslateAgent = require(englishTranslateAgentPath);
 
+    const translateAgentPath = Runtime.getFunctions()['ai/translateAgent'].path;
+    const translateAgent = require(translateAgentPath);
+
     const patientServicePath = Runtime.getFunctions()['services/patient'].path;
     const patientService = require(patientServicePath);
     // Import Ends
@@ -67,7 +70,8 @@ exports.handler = async (context, event, callback) => {
 
     // Identify the language of the user message and update if required
     const englishAgentRes = await englishTranslateAgent(userMsg);
-    const inputLang = englishAgentRes?.inputLanguage?.toLowerCase() || 'english';
+    const inputLang =
+      englishAgentRes?.inputLanguage?.toLowerCase() || 'english';
     const lastMsg = englishAgentRes.message || userMsg;
     if (patient.prefLang !== inputLang) {
       const updatedPatient = await patientService.updatePrefLangByPhoneNo(
@@ -89,9 +93,14 @@ exports.handler = async (context, event, callback) => {
       WaId
     );
     if (checkPatientDetails.question) {
+      let msgBody = checkPatientDetails.question;
+      await addBotMsgToSummary(WaId, chatSummary, msgBody);
+      if (patient.prefLang !== 'english') {
+        const translatedMsg = await translateAgent(msgBody, patient.prefLang);
+        msgBody = translatedMsg;
+      }
       const newMsg01 = new MessagingResponse();
-      newMsg01.message(checkPatientDetails.question);
-      await addBotMsgToSummary(WaId, chatSummary, checkPatientDetails.question);
+      newMsg01.message(msgBody);
       return callback(null, newMsg01);
     }
     if (checkPatientDetails.isPatientDetailsComplete) {
@@ -101,17 +110,19 @@ exports.handler = async (context, event, callback) => {
       if (!medicAgentRes.isMoreInfoRequired) {
         await sendChatSummaryToDoctor(chatSummary, twilioWANo, patient);
       }
+      await addBotMsgToSummary(WaId, chatSummary, botReply);
+      if (patient.prefLang !== 'english') {
+        const translatedMsg = await translateAgent(botReply, patient.prefLang);
+        botReply = translatedMsg;
+      }
       const newMsg02 = new MessagingResponse();
       newMsg02.message(botReply);
-      await addBotMsgToSummary(WaId, chatSummary, botReply);
       return callback(null, newMsg02);
     }
 
-    // Call Intent identifier AI using the summary and last message
-    // Based on the intent call the suitable Business function, example updatePatientDetails, Set remainder etc
-    const newMsg03 = new MessagingResponse();
-    newMsg03.message(JSON.stringify(patient));
-    return callback(null, newMsg03);
+    const fallbackMsg = new MessagingResponse();
+    fallbackMsg.message('fallback messaege');
+    return callback(null, fallbackMsg);
   } catch (err) {
     // if (dbclient.close) {
     //   console.log('Reached catch block');
