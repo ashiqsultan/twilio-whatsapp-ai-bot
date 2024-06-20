@@ -34,10 +34,17 @@ exports.handler = async (context, event, callback) => {
     const doctorResponseHandlerPath =
       Runtime.getFunctions()['business/doctorResponseHandler'].path;
     const doctorResponseHandler = require(doctorResponseHandlerPath);
+
+    const englishTranslateAgentPath =
+      Runtime.getFunctions()['ai/englishTranslateAgent'].path;
+    const englishTranslateAgent = require(englishTranslateAgentPath);
+
+    const patientServicePath = Runtime.getFunctions()['services/patient'].path;
+    const patientService = require(patientServicePath);
     // Import Ends
 
     const WaId = event.WaId || '';
-    const lastMsg = event.Body || '';
+    let userMsg = event.Body || '';
     const twilioWANo = event.To;
     if (!WaId) {
       throw new Error('Missing WaId');
@@ -46,17 +53,30 @@ exports.handler = async (context, event, callback) => {
     // Check is message from doctor if yes then call doctor handler
     const isMsgFromDoctor = await isDocMsg(WaId);
     if (isMsgFromDoctor) {
-      const doctorResponse = await doctorResponseHandler(lastMsg, twilioWANo);
+      const doctorResponse = await doctorResponseHandler(userMsg, twilioWANo);
       return callback(
         null,
         `Reply sent to patient: ${doctorResponse.patient_id}`
       );
     }
 
-    const patient = await getOrCreatePatient(WaId);
+    let patient = await getOrCreatePatient(WaId);
     if (!patient) {
       throw new Error('Patient not found');
     }
+
+    // Identify the language of the user message and update if required
+    const englishAgentRes = await englishTranslateAgent(userMsg);
+    const inputLang = englishAgentRes?.inputLanguage?.toLowerCase() || 'english';
+    const lastMsg = englishAgentRes.message || userMsg;
+    if (patient.prefLang !== inputLang) {
+      const updatedPatient = await patientService.updatePrefLangByPhoneNo(
+        WaId,
+        inputLang
+      );
+      patient = updatedPatient;
+    }
+
     const patientDetails = patient.details || {};
 
     // Summarize Conversation

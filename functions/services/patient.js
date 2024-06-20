@@ -32,6 +32,7 @@ const createPatient = async (phone_no) => {
     const newDoc = await collection.insertOne({
       phone_no: phone_no,
       easyId: easyId,
+      prefLang: 'english',
     });
     const result = await collection.findOne({ _id: newDoc.insertedId });
     return result;
@@ -74,9 +75,28 @@ const getPatientbyEasyId = async (easyId) => {
   }
 };
 
+const updatePrefLangByPhoneNo = async (phone_no, prefLang) => {
+  try {
+    const dbClientPath = Runtime.getFunctions()['utils/dbclient'].path;
+    const dbClient = require(dbClientPath);
+
+    const db = await dbClient(process.env.MONGODB_URI);
+    const _updateOp = await db
+      .collection(COLLECTION_NAME)
+      .updateOne({ phone_no: phone_no }, { $set: { prefLang: prefLang } });
+    const patient = await db
+      .collection(COLLECTION_NAME)
+      .findOne({ phone_no: phone_no });
+    return patient;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getPatientbyPhoneNo,
   createPatient,
   updatePatientDetailsByPhoneNo,
   getPatientbyEasyId,
+  updatePrefLangByPhoneNo,
 };
