@@ -9,12 +9,12 @@ const sendChatSummaryToDoctor = async (chatSummary, from, patientObj) => {
       Runtime.getFunctions()['business/getDoctorPhoneNo'].path;
     const getDoctorPhoneNo = require(getDoctorPhoneNoPath);
 
-    const docPhoneNo = await getDoctorPhoneNo(chatSummary, patientDetails);
+    const docPhoneNo = await getDoctorPhoneNo(chatSummary);
     const to = `whatsapp:+${docPhoneNo}`;
     console.log({ from, to });
     const messageBody = `
-    Chat Summary:${chatSummary}
-    To reply to this query use the patient code ${patientObj.easyId} in your message.
+    Chat Summary:${chatSummary}.
+    To reply to this patient please include the patient id ${patientObj.easyId} in your message.
     `;
     const message = await client.messages.create({
       from: from,

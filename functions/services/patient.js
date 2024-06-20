@@ -59,8 +59,24 @@ const updatePatientDetailsByPhoneNo = async (phone_no, patientDetails) => {
   }
 };
 
+const getPatientbyEasyId = async (easyId) => {
+  try {
+    const dbClientPath = Runtime.getFunctions()['utils/dbclient'].path;
+    const dbClient = require(dbClientPath);
+
+    const db = await dbClient(process.env.MONGODB_URI);
+    const patient = await db
+      .collection(COLLECTION_NAME)
+      .findOne({ easyId: easyId });
+    return patient;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getPatientbyPhoneNo,
   createPatient,
   updatePatientDetailsByPhoneNo,
+  getPatientbyEasyId,
 };

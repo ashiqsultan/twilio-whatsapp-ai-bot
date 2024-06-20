@@ -30,10 +30,15 @@ exports.handler = async (context, event, callback) => {
     const sendChatSummaryToDoctorPath =
       Runtime.getFunctions()['business/sendChatSummaryToDoctor'].path;
     const sendChatSummaryToDoctor = require(sendChatSummaryToDoctorPath);
+
+    const doctorResponseHandlerPath =
+      Runtime.getFunctions()['business/doctorResponseHandler'].path;
+    const doctorResponseHandler = require(doctorResponseHandlerPath);
     // Import Ends
 
     const WaId = event.WaId || '';
     const lastMsg = event.Body || '';
+    const twilioWANo = event.To;
     if (!WaId) {
       throw new Error('Missing WaId');
     }
@@ -41,7 +46,11 @@ exports.handler = async (context, event, callback) => {
     // Check is message from doctor if yes then call doctor handler
     const isMsgFromDoctor = await isDocMsg(WaId);
     if (isMsgFromDoctor) {
-      return callback(null, 'Yes its a doctor message');
+      const doctorResponse = await doctorResponseHandler(lastMsg, twilioWANo);
+      return callback(
+        null,
+        `Reply sent to patient: ${doctorResponse.patient_id}`
+      );
     }
 
     const patient = await getOrCreatePatient(WaId);
@@ -70,7 +79,6 @@ exports.handler = async (context, event, callback) => {
       console.log({ medicAgentRes });
       const botReply = medicAgentRes.message || '';
       if (!medicAgentRes.isMoreInfoRequired) {
-        const twilioWANo = event.To;
         await sendChatSummaryToDoctor(chatSummary, twilioWANo, patient);
       }
       const newMsg02 = new MessagingResponse();

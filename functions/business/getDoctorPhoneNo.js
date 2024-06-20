@@ -1,4 +1,4 @@
-const getDoctorPhoneNo = async (chatSummary, patientDetails) => {
+const getDoctorPhoneNo = async (chatSummary) => {
   try {
     const doctorServicePath = Runtime.getFunctions()['services/doctor'].path;
     const doctorService = require(doctorServicePath);
