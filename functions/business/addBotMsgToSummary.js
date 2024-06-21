@@ -1,9 +1,6 @@
+const consultationService = require('../services/consultation');
 const addBotMsgToSummary = async (phone_no, chatSummary = '', botMsg = '') => {
   try {
-    const consultationServicePath =
-      Runtime.getFunctions()['services/consultation'].path;
-    const consultationService = require(consultationServicePath);
-
     if (!botMsg && !chatSummary) {
       return false;
     }

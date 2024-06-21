@@ -1,12 +1,7 @@
+const doctorService = require('../services/doctor');
+const chooseDoctorAgent = require('../ai/chooseDoctorAgent');
 const getDoctorPhoneNo = async (chatSummary) => {
   try {
-    const doctorServicePath = Runtime.getFunctions()['services/doctor'].path;
-    const doctorService = require(doctorServicePath);
-
-    const chooseDoctorAgentPath =
-      Runtime.getFunctions()['ai/chooseDoctorAgent'].path;
-    const chooseDoctorAgent = require(chooseDoctorAgentPath);
-
     const allDoctors = await doctorService.getAllDoctor();
     const agentRes = await chooseDoctorAgent(chatSummary, allDoctors);
     console.log({ agentRes });

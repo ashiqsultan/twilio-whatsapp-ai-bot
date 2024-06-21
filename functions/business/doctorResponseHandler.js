@@ -1,17 +1,13 @@
+const doctorMsgHandlerAgent = require('../ai/doctorMsgHandlerAgent');
+const translateAgent = require('../ai/translateAgent');
+const patientService = require('../services/patient');
+
 const doctorResponseHandler = async (message, twilioWANo) => {
-  const doctorMsgHandlerAgentPath =
-    Runtime.getFunctions()['ai/doctorMsgHandlerAgent'].path;
-  const doctorMsgHandlerAgent = require(doctorMsgHandlerAgentPath);
-
-  const translateAgentPath = Runtime.getFunctions()['ai/translateAgent'].path;
-  const translateAgent = require(translateAgentPath);
-
   const agentResponse = await doctorMsgHandlerAgent(message);
 
   if (agentResponse.patient_id && agentResponse.summary) {
     const easyId = agentResponse.patient_id;
-    const patientServicePath = Runtime.getFunctions()['services/patient'].path;
-    const patientService = require(patientServicePath);
+
     const patient = await patientService.getPatientbyEasyId(easyId);
     if (patient) {
       const accountSid = process.env.ACCOUNT_SID;

@@ -1,14 +1,9 @@
 const { isEqual } = require('lodash');
+const patientService = require('../services/patient');
+const patientDetailsAgent = require('../ai/patientDetailsAgent');
 
 const patientDetailsCheck = async (chatSummary, patientDetails, phone_no) => {
   try {
-    const patientServicePath = Runtime.getFunctions()['services/patient'].path;
-    const patientService = require(patientServicePath);
-
-    const patientDetailsAgentPath =
-      Runtime.getFunctions()['ai/patientDetailsAgent'].path;
-    const patientDetailsAgent = require(patientDetailsAgentPath);
-
     let updatedPatientDetails = {};
     const agentResponse = await patientDetailsAgent(
       chatSummary,

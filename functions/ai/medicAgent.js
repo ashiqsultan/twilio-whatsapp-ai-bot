@@ -1,8 +1,6 @@
+const openaiHelper = require('../utils/openaiHelper');
 const medicAgent = async (chatSummary) => {
   try {
-    const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
-    const openaiHelper = require(openaiHelperPath);
-
     const context = `
     You are a helpful assistant for a chat app used by patients to communicate with doctors.
     The user message INPUT has the chat summary. The chat summary is the summary of the conversation between the patient and bot.

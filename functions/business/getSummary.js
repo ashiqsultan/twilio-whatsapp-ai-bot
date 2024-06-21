@@ -1,15 +1,8 @@
+const patientService = require('../services/patient');
+const consultationService = require('../services/consultation');
+const summarizeAgent = require('../ai/summarizeAgent');
 const getSummary = async (phone_no, lastMsg) => {
   try {
-    const patientServicePath = Runtime.getFunctions()['services/patient'].path;
-    const patientService = require(patientServicePath);
-
-    const consultationServicePath =
-      Runtime.getFunctions()['services/consultation'].path;
-    const consultationService = require(consultationServicePath);
-
-    const summarizeAgentPath = Runtime.getFunctions()['ai/summarizeAgent'].path;
-    const summarizeAgent = require(summarizeAgentPath);
-
     const consultation = await consultationService.upsertByPhoneNo(phone_no);
     const patient = await patientService.getPatientbyPhoneNo(phone_no);
 

@@ -1,8 +1,6 @@
+const openaiHelper = require('../utils/openaiHelper');
 const englishTranslateAgent = async (text) => {
   try {
-    const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
-    const openaiHelper = require(openaiHelperPath);
-
     const context = `You are an helpful assistant who translates user message to English.
     Objective: You need to identify the language of the user message and translate the message to English. 
     If the message is already in English then just return the message as it is.

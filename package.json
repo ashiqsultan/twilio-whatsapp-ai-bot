@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "twilio-run",
-    "deploy": "twilio-run deploy"
+    "start-depricated": "twilio-run",
+    "deploy-depricated": "twilio-run deploy",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "dependencies": {
     "@twilio/runtime-handler": "2.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
     "lodash": "^4.17.21",
     "mongodb": "^6.7.0",
     "nanoid": "^3.3.7",
@@ -16,6 +20,7 @@
     "twilio": "5.0.3"
   },
   "devDependencies": {
+    "nodemon": "^3.1.4",
     "twilio-run": "^4.0.0"
   },
   "engines": {

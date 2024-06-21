@@ -1,8 +1,6 @@
+const openaiHelper = require('../utils/openaiHelper');
 const doctorMsgHandlerAgent = async (doctorReply) => {
   try {
-    const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
-    const openaiHelper = require(openaiHelperPath);
-
     const context = `You are a helpful assistant who helps the patient understand the reply doctor gave to the patient.
     The user message provided to you is the reply doctor gave to the patient
     Your objective two objective

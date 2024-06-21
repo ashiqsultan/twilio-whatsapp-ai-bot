@@ -1,50 +1,21 @@
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
+const getOrCreatePatient = require('./business/getOrCreatePatient');
+const getSummary = require('./business/getSummary');
+const patientDetailsCheck = require('./business/patientDetailsCheck');
+const addBotMsgToSummary = require('./business/addBotMsgToSummary');
+const medicAgent = require('./ai/medicAgent');
+const isDocMsg = require('./business/isDocMsg');
+const sendChatSummaryToDoctor = require('./business/sendChatSummaryToDoctor');
+const doctorResponseHandler = require('./business/doctorResponseHandler');
+const englishTranslateAgent = require('./ai/englishTranslateAgent');
+const translateAgent = require('./ai/translateAgent');
+const patientService = require('./services/patient');
 
-exports.handler = async (context, event, callback) => {
+const waHandler = async (event) => {
   try {
     console.log('You hit Whats App route');
     console.log('event');
     console.log(event);
-    // Import
-    const getOrCreatePatientPath =
-      Runtime.getFunctions()['business/getOrCreatePatient'].path;
-    const getOrCreatePatient = require(getOrCreatePatientPath);
-
-    const getSummaryPath = Runtime.getFunctions()['business/getSummary'].path;
-    const getSummary = require(getSummaryPath);
-
-    const patientDetailsCheckPath =
-      Runtime.getFunctions()['business/patientDetailsCheck'].path;
-    const patientDetailsCheck = require(patientDetailsCheckPath);
-
-    const addBotMsgToSummaryPath =
-      Runtime.getFunctions()['business/addBotMsgToSummary'].path;
-    const addBotMsgToSummary = require(addBotMsgToSummaryPath);
-
-    const medicAgentPath = Runtime.getFunctions()['ai/medicAgent'].path;
-    const medicAgent = require(medicAgentPath);
-
-    const isDocMsgPath = Runtime.getFunctions()['business/isDocMsg'].path;
-    const isDocMsg = require(isDocMsgPath);
-
-    const sendChatSummaryToDoctorPath =
-      Runtime.getFunctions()['business/sendChatSummaryToDoctor'].path;
-    const sendChatSummaryToDoctor = require(sendChatSummaryToDoctorPath);
-
-    const doctorResponseHandlerPath =
-      Runtime.getFunctions()['business/doctorResponseHandler'].path;
-    const doctorResponseHandler = require(doctorResponseHandlerPath);
-
-    const englishTranslateAgentPath =
-      Runtime.getFunctions()['ai/englishTranslateAgent'].path;
-    const englishTranslateAgent = require(englishTranslateAgentPath);
-
-    const translateAgentPath = Runtime.getFunctions()['ai/translateAgent'].path;
-    const translateAgent = require(translateAgentPath);
-
-    const patientServicePath = Runtime.getFunctions()['services/patient'].path;
-    const patientService = require(patientServicePath);
-    // Import Ends
 
     const WaId = event.WaId || '';
     let userMsg = event.Body || '';
@@ -57,10 +28,7 @@ exports.handler = async (context, event, callback) => {
     const isMsgFromDoctor = await isDocMsg(WaId);
     if (isMsgFromDoctor) {
       const doctorResponse = await doctorResponseHandler(userMsg, twilioWANo);
-      return callback(
-        null,
-        `Reply sent to patient: ${doctorResponse.patient_id}`
-      );
+      return `Reply sent to patient: ${doctorResponse.patient_id}`;
     }
 
     let patient = await getOrCreatePatient(WaId);
@@ -98,9 +66,7 @@ exports.handler = async (context, event, callback) => {
         const translatedMsg = await translateAgent(msgBody, patient.prefLang);
         msgBody = translatedMsg;
       }
-      const newMsg01 = new MessagingResponse();
-      newMsg01.message(msgBody);
-      return callback(null, newMsg01);
+      return msgBody;
     }
     if (checkPatientDetails.isPatientDetailsComplete) {
       const medicAgentRes = await medicAgent(chatSummary);
@@ -112,27 +78,19 @@ exports.handler = async (context, event, callback) => {
       }
       if (patient.prefLang !== 'english') {
         const translatedMsg = await translateAgent(botReply, patient.prefLang);
-        const msgToSend = translatedMsg;
-        const newMsg02 = new MessagingResponse();
-        newMsg02.message(msgToSend);
-        return callback(null, newMsg02);
+        return translatedMsg;
       }
-      const newMsg03 = new MessagingResponse();
-      newMsg03.message(botReply);
-      return callback(null, newMsg03);
+      return botReply;
     }
-
-    const fallbackMsg = new MessagingResponse();
-    fallbackMsg.message('fallback messaege');
-    return callback(null, fallbackMsg);
+    return 'fallback messaege';
   } catch (err) {
     // if (dbclient.close) {
     //   console.log('Reached catch block');
     //   await dbclient.close();
     // }
     console.error(err);
-    const msgRes = new MessagingResponse();
-    msgRes.message('Something went wrong, Please try again later');
-    return callback(null, msgRes);
+    return 'Something went wrong, Please try again later';
   }
 };
+
+module.exports = waHandler;

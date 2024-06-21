@@ -1,8 +1,6 @@
+const openaiHelper = require('../utils/openaiHelper');
 const patientDetailsAgent = async (chatSummary, patientDetails) => {
   try {
-    const openaiHelperPath = Runtime.getFunctions()['utils/openaiHelper'].path;
-    const openaiHelper = require(openaiHelperPath);
-
     const context = `You will receive two user inputs
     - 1. chatSummary: Summary of the chat so far between patient and bot
     - 2. patientDetails: Available patient details in JSON format
